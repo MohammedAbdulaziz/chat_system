@@ -1,0 +1,18 @@
+FROM ruby:3.3.2
+
+WORKDIR /app
+RUN apt-get update && apt-get install -y cron netcat-openbsd
+
+COPY Gemfile /app/Gemfile
+COPY Gemfile.lock /app/Gemfile.lock
+RUN bundle install
+
+COPY . /app
+COPY config/schedule.rb /app/config/schedule.rb
+RUN bundle exec whenever --update-crontab --set environment='development'
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
